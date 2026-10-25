@@ -1,0 +1,2178 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="theme-color" content="#0f766e">
+<title>গ্রামীণ সমিতি - স্মার্ট ফান্ড ম্যানেজমেন্ট</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --primary: #0f766e; --primary-dark: #115e59; --primary-light: #14b8a6;
+    --accent: #f59e0b; --accent-dark: #d97706; --danger: #dc2626;
+    --success: #16a34a; --info: #0891b2; --purple: #7c3aed;
+    --bg: #eef2f7; --card: #ffffff; --text: #0f172a; --text-muted: #64748b; --border: #e2e8f0;
+    --shadow-3d: 0 4px 20px rgba(15,23,42,.08), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-3d-hover: 0 12px 32px rgba(15,23,42,.14), 0 4px 8px rgba(15,23,42,.08);
+  }
+  body { font-family: 'Segoe UI', 'Noto Sans Bengali', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #eef2f7 0%, #e0f2f1 100%);
+    color: var(--text); min-height: 100vh; line-height: 1.5; background-attachment: fixed; }
+
+  #syncBanner { position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+    padding: 8px 16px; font-size: 12px; font-weight: 700; text-align: center;
+    transform: translateY(-100%); transition: transform .3s;
+    display: flex; align-items: center; justify-content: center; gap: 8px; }
+  #syncBanner.show { transform: translateY(0); }
+  #syncBanner.info { background: linear-gradient(135deg, var(--info), #0e7490); color: #fff; }
+  #syncBanner.success { background: linear-gradient(135deg, var(--success), #15803d); color: #fff; }
+  #syncBanner.error { background: linear-gradient(135deg, var(--danger), #b91c1c); color: #fff; }
+  #syncBanner .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.4);
+    border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #loginScreen { display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 20px;
+    background: linear-gradient(135deg, #0f766e 0%, #115e59 40%, #134e4a 100%);
+    position: relative; overflow: hidden; }
+  #loginScreen::before, #loginScreen::after { content: ''; position: absolute; border-radius: 50%;
+    background: radial-gradient(circle, rgba(20,184,166,.4), transparent 70%);
+    animation: floatBlob 12s ease-in-out infinite; }
+  #loginScreen::before { width: 400px; height: 400px; top: -150px; right: -100px; }
+  #loginScreen::after { width: 300px; height: 300px; bottom: -100px; left: -100px; animation-delay: 3s; }
+  @keyframes floatBlob { 0%, 100% { transform: translate(0,0) scale(1); }
+    50% { transform: translate(30px, -30px) scale(1.1); } }
+  .login-box { background: rgba(255,255,255,.95); backdrop-filter: blur(20px);
+    border-radius: 24px; padding: 32px 24px; width: 100%; max-width: 420px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.5) inset;
+    position: relative; z-index: 2; animation: popIn .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .login-logo { width: 80px; height: 80px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px; font-size: 38px;
+    box-shadow: 0 8px 24px rgba(15,118,110,.4), inset 0 -3px 8px rgba(0,0,0,.15);
+    animation: pulseGlow 3s ease-in-out infinite; }
+  @keyframes pulseGlow { 0%, 100% { box-shadow: 0 8px 24px rgba(15,118,110,.4), inset 0 -3px 8px rgba(0,0,0,.15); }
+    50% { box-shadow: 0 8px 40px rgba(20,184,166,.6), inset 0 -3px 8px rgba(0,0,0,.15); } }
+  .login-box h1 { text-align: center; font-size: 23px; margin-bottom: 6px; font-weight: 800; }
+  .login-box > p { text-align: center; color: var(--text-muted); font-size: 13px; margin-bottom: 24px; }
+  .role-tabs { display: flex; gap: 6px; margin-bottom: 20px; background: var(--bg); padding: 5px; border-radius: 14px; }
+  .role-tab { flex: 1; padding: 11px; border: none; background: transparent; border-radius: 10px;
+    font-size: 14px; font-weight: 700; cursor: pointer; color: var(--text-muted); transition: all .25s; }
+  .role-tab.active { background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: #fff; box-shadow: 0 4px 12px rgba(15,118,110,.4); }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  .field input, .field select, .field textarea { width: 100%; padding: 13px 15px; border: 1.5px solid var(--border);
+    border-radius: 12px; font-size: 15px; background: #fff; color: var(--text);
+    transition: all .2s; font-family: inherit; }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(15,118,110,.12); }
+  .field .hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+  .btn { width: 100%; padding: 13px; border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 700; cursor: pointer; transition: all .2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; }
+  .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: #fff; box-shadow: 0 4px 14px rgba(15,118,110,.35); }
+  .btn-primary:hover, .btn-primary:active { background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    transform: translateY(-1px); box-shadow: 0 8px 24px rgba(15,118,110,.45); }
+  .btn-accent { background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: #fff; box-shadow: 0 4px 14px rgba(245,158,11,.35); }
+  .btn-outline { background: #fff; color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-danger { background: linear-gradient(135deg, var(--danger), #b91c1c);
+    color: #fff; box-shadow: 0 4px 14px rgba(220,38,38,.3); }
+  .btn-ghost { background: var(--bg); color: var(--text); }
+  .btn-sm { width: auto; padding: 8px 14px; font-size: 13px; border-radius: 9px; }
+  .login-hint { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 16px; line-height: 1.7; }
+  .login-hint code { background: var(--bg); padding: 2px 6px; border-radius: 5px; font-size: 11px; font-weight: 700; }
+  .login-footer { text-align: center; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .login-footer .sync-dot { display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 700; color: var(--text-muted); }
+  .login-footer .sync-dot .dot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; }
+  .login-footer .sync-dot.online .dot { background: #4ade80; animation: blink 1.5s infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+  #app { display: none; min-height: 100vh; padding-bottom: 90px; }
+  .topbar { position: sticky; top: 0; z-index: 50;
+    background: linear-gradient(135deg, rgba(15,118,110,.97), rgba(17,94,89,.97));
+    backdrop-filter: blur(12px); color: #fff; padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0,0,0,.2); gap: 8px; }
+  .topbar-info { display: flex; align-items: center; gap: 11px; min-width: 0; flex: 1; }
+  .avatar { width: 42px; height: 42px; border-radius: 50%;
+    background: rgba(255,255,255,.25); display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 16px; flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,.2), inset 0 -2px 4px rgba(0,0,0,.1);
+    border: 2px solid rgba(255,255,255,.3); overflow: hidden; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .topbar h2 { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topbar small { font-size: 11px; opacity: .85; display: block; }
+  .topbar-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .icon-btn { width: 38px; height: 38px; border-radius: 10px;
+    background: rgba(255,255,255,.2); border: none; color: #fff;
+    font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .2s; position: relative; }
+  .icon-btn:active { background: rgba(255,255,255,.4); }
+  .icon-btn.syncing { animation: spin 1s linear infinite; }
+  .icon-btn .status-dot { position: absolute; top: 4px; right: 4px;
+    width: 8px; height: 8px; border-radius: 50%; background: #94a3b8;
+    border: 1.5px solid rgba(255,255,255,.8); }
+  .icon-btn .status-dot.online { background: #4ade80; }
+  .icon-btn .status-dot.offline { background: #f87171; }
+
+  .content { padding: 16px; max-width: 960px; margin: 0 auto; }
+  .card { background: var(--card); border-radius: 18px; padding: 16px;
+    margin-bottom: 14px; box-shadow: var(--shadow-3d);
+    border: 1px solid rgba(226,232,240,.8); transition: all .25s; }
+  .card-title { font-size: 15px; font-weight: 800; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px; color: var(--text); }
+  .card-title .ct-icon { width: 30px; height: 30px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; box-shadow: 0 3px 10px rgba(15,118,110,.35); }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 14px; }
+  .stat-card { background: var(--card); border-radius: 18px; padding: 16px;
+    box-shadow: var(--shadow-3d); border: 1px solid rgba(226,232,240,.8);
+    position: relative; overflow: hidden; transition: all .25s; }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-3d-hover); }
+  .stat-card .icon { width: 40px; height: 40px; border-radius: 12px; font-size: 20px;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 8px;
+    background: linear-gradient(135deg, #e0f2f1, #b2dfdb); }
+  .stat-card .value { font-size: 22px; font-weight: 800; color: var(--primary-dark); line-height: 1.2; }
+  .stat-card .label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+  .stat-card.accent { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: #fcd34d; }
+  .stat-card.accent .icon { background: rgba(245,158,11,.2); }
+  .stat-card.accent .value { color: #b45309; }
+  .stat-card.dues { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-color: #fca5a5; }
+  .stat-card.dues .icon { background: rgba(220,38,38,.15); }
+  .stat-card.dues .value { color: var(--danger); }
+  .stat-card.purple { background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); border-color: #c4b5fd; }
+  .stat-card.purple .icon { background: rgba(124,58,237,.15); }
+  .stat-card.purple .value { color: var(--purple); }
+  .stat-card.blue { background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%); border-color: #67e8f9; }
+  .stat-card.blue .icon { background: rgba(8,145,178,.15); }
+  .stat-card.blue .value { color: var(--info); }
+
+  .nav-tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto;
+    padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab { padding: 9px 16px; border: 1.5px solid var(--border); background: #fff;
+    border-radius: 20px; font-size: 13px; font-weight: 700; white-space: nowrap;
+    cursor: pointer; color: var(--text-muted); transition: all .2s;
+    font-family: inherit; display: flex; align-items: center; gap: 5px; }
+  .nav-tab.active { background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: #fff; border-color: transparent; box-shadow: 0 4px 12px rgba(15,118,110,.4); }
+
+  .member-row, .list-row { display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-bottom: 1px solid var(--border); gap: 10px; }
+  .member-row:last-child, .list-row:last-child { border-bottom: none; }
+  .member-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+  .member-avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 16px; color: #fff; overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,.15); }
+  .member-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .member-name { font-weight: 700; font-size: 14px; color: var(--text); }
+  .member-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .badge { display: inline-block; padding: 4px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .badge-paid { background: #dcfce7; color: var(--success); }
+  .badge-due { background: #fee2e2; color: var(--danger); }
+  .badge-admin { background: #ede9fe; color: var(--purple); }
+  .badge-inactive { background: #e5e7eb; color: #6b7280; }
+  .amount-pos { color: var(--success); font-weight: 800; }
+  .amount-neg { color: var(--danger); font-weight: 800; }
+
+  .inline-form { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .inline-form input, .inline-form select, .inline-form textarea {
+    flex: 1; min-width: 120px; padding: 11px 13px; border: 1.5px solid var(--border);
+    border-radius: 11px; font-size: 14px; background: #fff; font-family: inherit; transition: all .2s; }
+  .inline-form input:focus, .inline-form select:focus, .inline-form textarea:focus {
+    outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15,118,110,.1); }
+  .inline-form button { padding: 11px 20px; background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: #fff; border: none; border-radius: 11px; font-size: 14px; font-weight: 700;
+    cursor: pointer; white-space: nowrap; font-family: inherit;
+    box-shadow: 0 4px 12px rgba(15,118,110,.3); transition: all .2s; }
+  .inline-form button:active { transform: scale(.97); }
+
+  .empty { text-align: center; padding: 30px 16px; color: var(--text-muted); font-size: 14px; }
+  .empty .emoji { font-size: 40px; display: block; margin-bottom: 10px; }
+
+  #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--text); color: #fff; padding: 13px 22px; border-radius: 14px;
+    font-size: 14px; font-weight: 700; opacity: 0; transition: all .3s;
+    pointer-events: none; z-index: 999; max-width: 90%; text-align: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.success { background: linear-gradient(135deg, var(--success), #15803d); }
+  #toast.error { background: linear-gradient(135deg, var(--danger), #b91c1c); }
+
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
+    background: rgba(255,255,255,.97); backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    display: flex; padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(0,0,0,.08); }
+  .bottom-nav button { flex: 1; background: none; border: none; padding: 6px 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 10px; font-weight: 700; color: var(--text-muted); cursor: pointer;
+    font-family: inherit; transition: all .2s; position: relative; }
+  .bottom-nav button .nav-icon { font-size: 20px; transition: transform .2s; }
+  .bottom-nav button.active { color: var(--primary); }
+  .bottom-nav button.active .nav-icon { transform: scale(1.15); }
+  .bottom-nav button.active::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 30px; height: 3px; background: var(--primary); border-radius: 0 0 3px 3px; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 200;
+    display: none; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(4px); }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: 22px; padding: 22px;
+    width: 100%; max-width: 500px; max-height: 88vh; overflow-y: auto;
+    animation: modalIn .3s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 25px 70px rgba(0,0,0,.3); }
+  @keyframes modalIn { from { transform: scale(.9) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+  .modal h3 { font-size: 18px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .modal-actions .btn { flex: 1; }
+
+  .section { display: none; }
+  .section.active { display: block; animation: fadeIn .3s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .month-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; }
+  .month-chip { padding: 11px 6px; border-radius: 12px; text-align: center; font-size: 12px;
+    font-weight: 700; border: 1.5px solid var(--border); cursor: pointer;
+    background: #fff; transition: all .15s; }
+  .month-chip .yr { font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px; font-weight: 600; }
+  .month-chip.paid { background: linear-gradient(135deg, #dcfce7, #bbf7d0); border-color: #86efac; color: var(--success); }
+  .month-chip.paid .yr { color: #15803d; }
+  .month-chip.due { background: #fff; border-color: #fca5a5; color: var(--danger); }
+  .month-chip.due .yr { color: #991b1b; }
+
+  .profile-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-radius: 22px; padding: 24px 20px; color: #fff;
+    text-align: center; margin-bottom: 14px; position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15,118,110,.35); }
+  .profile-header::before { content: ''; position: absolute; top: -50%; right: -20%;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(20,184,166,.5), transparent 70%); }
+  .profile-pic-wrap { position: relative; display: inline-block; margin-bottom: 12px; z-index: 1; }
+  .profile-pic { width: 100px; height: 100px; border-radius: 50%;
+    background: rgba(255,255,255,.25); display: flex; align-items: center; justify-content: center;
+    font-size: 42px; font-weight: 800; overflow: hidden;
+    border: 4px solid rgba(255,255,255,.5); box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+  .profile-pic img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-name { font-size: 20px; font-weight: 800; margin-bottom: 4px; position: relative; z-index: 1; }
+  .profile-meta { font-size: 13px; opacity: .9; position: relative; z-index: 1; line-height: 1.7; }
+  .profile-meta-row { display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .profile-badge { display: inline-block; background: rgba(255,255,255,.25); padding: 4px 12px;
+    border-radius: 20px; font-size: 11px; font-weight: 700; margin-top: 8px;
+    position: relative; z-index: 1; backdrop-filter: blur(4px); }
+
+  .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 140px; padding: 10px 0; }
+  .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+  .bar { width: 100%; max-width: 42px; border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, var(--primary-light), var(--primary));
+    min-height: 4px; transition: all .3s;
+    box-shadow: 0 2px 6px rgba(15,118,110,.3); }
+  .bar.expense { background: linear-gradient(180deg, #f87171, var(--danger)); box-shadow: 0 2px 6px rgba(220,38,38,.3); }
+  .bar-label { font-size: 10px; color: var(--text-muted); font-weight: 600; text-align: center; }
+  .chart-legend { display: flex; gap: 16px; justify-content: center; margin-top: 8px; font-size: 11px; font-weight: 600; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
+
+  .cat-bar { margin-bottom: 10px; }
+  .cat-bar-top { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .cat-bar-track { height: 10px; background: var(--bg); border-radius: 6px; overflow: hidden; }
+  .cat-bar-fill { height: 100%; border-radius: 6px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    transition: width .5s cubic-bezier(.4,0,.2,1); }
+
+  @media (min-width: 640px) {
+    .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    .topbar h2 { font-size: 17px; }
+    .content { padding: 20px; }
+  }
+  @media (max-width: 360px) {
+    .stat-card .value { font-size: 18px; }
+    .member-avatar { width: 38px; height: 38px; font-size: 14px; }
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+  .file-upload { display: flex; align-items: center; gap: 10px; padding: 12px;
+    border: 2px dashed var(--border); border-radius: 12px; cursor: pointer;
+    transition: all .2s; background: var(--bg); }
+  .file-upload:hover { border-color: var(--primary); background: #e0f2f1; }
+  .file-preview { width: 60px; height: 60px; border-radius: 50%; overflow: hidden;
+    background: var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: var(--text-muted); flex-shrink: 0; }
+  .file-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+  .search-box { position: relative; margin-bottom: 12px; }
+  .search-box input { width: 100%; padding: 11px 14px 11px 40px; border: 1.5px solid var(--border);
+    border-radius: 12px; font-size: 14px; font-family: inherit; background: #fff; }
+  .search-box input:focus { outline: none; border-color: var(--primary); }
+  .search-box::before { content: '🔍'; position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%); font-size: 15px; opacity: .5; }
+
+  .setup-help { background: #f0fdfa; border: 1.5px solid #5eead4; border-radius: 14px;
+    padding: 14px; font-size: 12px; line-height: 1.8; color: #134e4a; margin-bottom: 14px; }
+  .setup-help h4 { font-size: 14px; margin-bottom: 8px; color: var(--primary-dark); }
+  .setup-help ol { padding-left: 18px; }
+  .setup-help li { margin-bottom: 6px; }
+  .setup-help code { background: #fff; padding: 2px 6px; border-radius: 5px;
+    font-size: 11px; font-weight: 700; color: var(--primary-dark);
+    border: 1px solid #99f6e4; word-break: break-all; }
+  .setup-help a { color: var(--primary); font-weight: 700; }
+
+  .connection-status { display: flex; align-items: center; gap: 6px;
+    padding: 10px 12px; border-radius: 10px; font-size: 12px; font-weight: 700;
+    margin-bottom: 12px; }
+  .connection-status.ok { background: #dcfce7; color: var(--success); }
+  .connection-status.fail { background: #fee2e2; color: var(--danger); }
+  .connection-status.pending { background: #fef3c7; color: #b45309; }
+</style>
+</head>
+<body>
+
+<div id="syncBanner"></div>
+
+<!-- ================= LOGIN ================= -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">🏦</div>
+    <h1 id="loginTitle">গ্রামীণ সমিতি</h1>
+    <p>স্মার্ট ফান্ড ম্যানেজমেন্ট সিস্টেম</p>
+
+    <div class="role-tabs">
+      <button class="role-tab active" data-role="admin" onclick="switchRole('admin')">👑 অ্যাডমিন</button>
+      <button class="role-tab" data-role="member" onclick="switchRole('member')">👤 সদস্য</button>
+    </div>
+
+    <div id="adminLogin">
+      <div class="field">
+        <label>অ্যাডমিন পাসওয়ার্ড</label>
+        <input type="password" id="adminPass" placeholder="পাসওয়ার্ড দিন" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" onclick="doAdminLogin()">🔐 লগইন করুন</button>
+      <div class="login-hint">ডিফল্ট পাসওয়ার্ড: <code>admin123</code></div>
+    </div>
+
+    <div id="memberLogin" style="display:none;">
+      <div class="field">
+        <label>সদস্য নির্বাচন করুন</label>
+        <select id="memberSelect"></select>
+      </div>
+      <div class="field">
+        <label>মোবাইল নম্বরের শেষ ৪ ডিজিট</label>
+        <input type="tel" id="memberPhone" placeholder="যেমন: 1234" maxlength="4" inputmode="numeric">
+      </div>
+      <button class="btn btn-primary" onclick="doMemberLogin()">🔐 লগইন করুন</button>
+      <div class="login-hint">মোবাইল নম্বরের শেষ ৪ ডিজিট দিয়ে লগইন করুন।</div>
+    </div>
+
+    <div class="login-footer">
+      <div class="sync-dot" id="loginSyncStatus">
+        <span class="dot"></span>
+        <span id="loginSyncText">ডেটা লোড হচ্ছে...</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-info">
+      <div class="avatar" id="topAvatar">A</div>
+      <div style="min-width:0;">
+        <h2 id="topName">অ্যাডমিন</h2>
+        <small id="topRole">অ্যাডমিন প্যানেল</small>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="syncBtn" onclick="manualSync()" title="সিঙ্ক">
+        🔄
+        <span class="status-dot" id="syncDot"></span>
+      </button>
+      <button class="icon-btn" onclick="logout()" title="লগআউট">🚪</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- ADMIN PANEL -->
+    <div id="adminPanel" class="section active">
+      <div class="stats-grid" id="adminStats"></div>
+
+      <div class="nav-tabs" id="adminTabs">
+        <button class="nav-tab active" onclick="adminTab('overview', this)">📊 সারসংক্ষেপ</button>
+        <button class="nav-tab" onclick="adminTab('members', this)">👥 সদস্য</button>
+        <button class="nav-tab" onclick="adminTab('collections', this)">💰 আদায়</button>
+        <button class="nav-tab" onclick="adminTab('expenses', this)">📤 খরচ</button>
+        <button class="nav-tab" onclick="adminTab('categories', this)">🗂️ খাত</button>
+        <button class="nav-tab" onclick="adminTab('reports', this)">📈 রিপোর্ট</button>
+        <button class="nav-tab" onclick="adminTab('notices', this)">📢 নোটিশ</button>
+        <button class="nav-tab" onclick="adminTab('settings', this)">⚙️ সেটিংস</button>
+      </div>
+
+      <div id="aOverview" class="admin-sec">
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">📊</div>মাসিক আয়-ব্যয় (সর্বশেষ ৬ মাস)</div>
+          <div id="overviewChart"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">🔔</div>বকেয়া সদস্য</div>
+          <div id="dueMembersList"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">🧾</div>সর্বশেষ লেনদেন</div>
+          <div id="recentTx"></div>
+        </div>
+      </div>
+
+      <div id="aMembers" class="admin-sec" style="display:none;">
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">➕</div>নতুন সদস্য</div>
+          <button class="btn btn-primary" onclick="openAddMemberModal()">📝 নতুন সদস্য যোগ করুন</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">👥</div>সদস্য তালিকা (<span id="memberCount">0</span>)</div>
+          <div class="search-box">
+            <input type="text" id="memberSearch" placeholder="নাম বা নম্বর দিয়ে খুঁজুন..." oninput="renderMembers()">
+          </div>
+          <div id="membersList"></div>
+        </div>
+      </div>
+
+      <div id="aCollections" class="admin-sec" style="display:none;">
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">💰</div>চাঁদা আদায়</div>
+          <div class="inline-form">
+            <select id="payMember"></select>
+            <select id="payMonth"></select>
+            <select id="payYear"></select>
+          </div>
+          <div class="inline-form">
+            <input type="number" id="payAmount" placeholder="টাকা" inputmode="numeric">
+            <input type="date" id="payDate">
+          </div>
+          <button class="btn btn-primary" onclick="recordPayment()">✅ আদায় রেকর্ড</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">📅</div>মাস অনুযায়ী স্ট্যাটাস</div>
+          <div class="inline-form">
+            <select id="statusMonth" onchange="renderMonthStatus()"></select>
+            <select id="statusYear" onchange="renderMonthStatus()"></select>
+          </div>
+          <div id="monthStatusList" style="margin-top:12px;"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">📋</div>সাম্প্রতিক আদায়</div>
+          <div id="recentPayments"></div>
+        </div>
+      </div>
+
+      <div id="aExpenses" class="admin-sec" style="display:none;">
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">📤</div>খরচ যোগ</div>
+          <div class="inline-form">
+            <input type="text" id="expDesc" placeholder="বিবরণ *">
+            <input type="number" id="expAmount" placeholder="টাকা *" inputmode="numeric">
+          </div>
+          <div class="inline-form">
+            <select id="expCategory"></select>
+            <input type="date" id="expDate">
+          </div>
+          <button class="btn btn-primary" onclick="addExpense()">➕ যোগ করুন</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">🧾</div>খরচের তালিকা</div>
+          <div id="expensesList"></div>
+        </div>
+      </div>
+
+      <div id="aCategories" class="admin-sec" style="display:none;">
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">🗂️</div>নতুন খাত</div>
+          <div class="inline-form">
+            <input type="text" id="newCatName" placeholder="খাতের নাম">
+            <input type="text" id="newCatIcon" placeholder="ইমোজি" maxlength="2">
+            <button onclick="addCategory()">যোগ</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">📊</div>খাতভিত্তিক খরচ</div>
+          <div id="categoryBreakdown"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">🗂️</div>সকল খাত</div>
+          <div id="categoriesList"></div>
+        </div>
+      </div>
+
+      <div id="aReports" class="admin-sec" style="display:none;">
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">📈</div>মাসিক রিপোর্ট</div>
+          <div class="inline-form">
+            <select id="reportYear" onchange="renderReport()"></select>
+          </div>
+          <div id="reportContent"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">📥</div>ব্যাকআপ</div>
+          <button class="btn btn-outline" style="margin-bottom:8px;" onclick="exportData()">📤 JSON ডাউনলোড</button>
+          <button class="btn btn-outline" style="margin-bottom:8px;" onclick="document.getElementById('importFile').click()">📥 JSON ইমপোর্ট</button>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+          <button class="btn btn-danger" onclick="resetAll()">🗑️ সব রিসেট</button>
+        </div>
+      </div>
+
+      <div id="aNotices" class="admin-sec" style="display:none;">
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">📢</div>নোটিশ</div>
+          <div class="field"><input type="text" id="noticeTitle" placeholder="শিরোনাম"></div>
+          <div class="field"><textarea id="noticeBody" rows="3" placeholder="বিস্তারিত..."></textarea></div>
+          <button class="btn btn-primary" onclick="addNotice()">📢 প্রকাশ</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">📋</div>সকল নোটিশ</div>
+          <div id="adminNoticesList"></div>
+        </div>
+      </div>
+
+      <div id="aSettings" class="admin-sec" style="display:none;">
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">⚙️</div>সমিতির সেটিংস</div>
+          <div class="field"><label>সমিতির নাম</label><input type="text" id="setSocietyName"></div>
+          <div class="field"><label>মাসিক চাঁদা</label><input type="number" id="setMonthlyFee" inputmode="numeric"></div>
+          <div class="field"><label>প্রতিষ্ঠার তারিখ</label><input type="date" id="setEstDate"></div>
+          <button class="btn btn-primary" onclick="saveSettings()">💾 সংরক্ষণ</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">🔐</div>পাসওয়ার্ড পরিবর্তন</div>
+          <div class="field"><label>পুরনো</label><input type="password" id="oldPass"></div>
+          <div class="field"><label>নতুন</label><input type="password" id="newPass"></div>
+          <div class="field"><label>কনফার্ম</label><input type="password" id="confirmPass"></div>
+          <button class="btn btn-accent" onclick="changePassword()">🔐 পরিবর্তন</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">☁️</div>GitHub ক্লাউড সিঙ্ক</div>
+          <div id="githubStatus"></div>
+          <div id="githubActiveActions" style="display:none;">
+            <button class="btn btn-primary" style="margin-top:10px;" onclick="manualSync()">🔄 এখন সিঙ্ক করুন</button>
+            <button class="btn btn-outline" style="margin-top:8px;" onclick="openGitHubSettings()">⚙️ সেটিংস পরিবর্তন</button>
+            <button class="btn btn-danger" style="margin-top:8px;" onclick="disconnectGitHub()">🔌 সংযোগ বিচ্ছিন্ন</button>
+          </div>
+          <div id="githubInactiveActions" style="display:none;">
+            <button class="btn btn-primary" style="margin-top:10px;" onclick="openGitHubSettings()">🔗 GitHub সংযোগ করুন</button>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.6;">
+              সংযোগ করলে ডেটা আপনার প্রাইভেট GitHub রিপোতে স্বয়ংক্রিয়ভাবে সেভ হবে এবং সব ডিভাইস থেকে সিঙ্ক হবে।
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">ℹ️</div>সিস্টেম তথ্য</div>
+          <div id="systemInfo"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEMBER PANEL -->
+    <div id="memberPanel" class="section">
+      <div id="memberProfileHeader"></div>
+      <div class="stats-grid" id="memberStats"></div>
+
+      <div class="nav-tabs" id="memberTabs">
+        <button class="nav-tab active" onclick="memberTab('mSummary', this)">📊 সারসংক্ষেপ</button>
+        <button class="nav-tab" onclick="memberTab('mProfile', this)">👤 প্রোফাইল</button>
+        <button class="nav-tab" onclick="memberTab('mHistory', this)">📅 পেমেন্ট</button>
+        <button class="nav-tab" onclick="memberTab('mFund', this)">🏦 ফান্ড</button>
+        <button class="nav-tab" onclick="memberTab('mNotices', this)">📢 নোটিশ</button>
+      </div>
+
+      <div id="mSummary" class="member-sec">
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">📅</div>আমার চাঁদা স্ট্যাটাস</div>
+          <div id="myMonthChips" class="month-grid"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">🧾</div>সর্বশেষ লেনদেন</div>
+          <div id="myRecentTx"></div>
+        </div>
+      </div>
+
+      <div id="mProfile" class="member-sec" style="display:none;">
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">✏️</div>প্রোফাইল</div>
+          <div class="field"><label>নাম</label><input type="text" id="memName"></div>
+          <div class="field"><label>পিতার নাম</label><input type="text" id="memFather"></div>
+          <div class="field"><label>মোবাইল</label><input type="tel" id="memPhone" inputmode="numeric"></div>
+          <div class="field"><label>ঠিকানা</label><input type="text" id="memAddress"></div>
+          <div class="field">
+            <label>ছবি</label>
+            <div class="file-upload" onclick="document.getElementById('memPhotoInput').click()">
+              <div class="file-preview" id="memPhotoPreview">📷</div>
+              <div><div style="font-weight:700;font-size:13px;">ছবি আপলোড</div></div>
+            </div>
+            <input type="file" id="memPhotoInput" accept="image/*" style="display:none" onchange="previewMemPhoto(event)">
+          </div>
+          <button class="btn btn-primary" onclick="saveMyProfile()">💾 সংরক্ষণ</button>
+        </div>
+      </div>
+
+      <div id="mHistory" class="member-sec" style="display:none;">
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">📅</div>পেমেন্ট ইতিহাস</div>
+          <div id="myPaymentHistory"></div>
+        </div>
+      </div>
+
+      <div id="mFund" class="member-sec" style="display:none;">
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">🏦</div>ফান্ডের অবস্থা</div>
+          <div id="fundStatus"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">📊</div>খাতভিত্তিক খরচ</div>
+          <div id="fundCategories"></div>
+        </div>
+      </div>
+
+      <div id="mNotices" class="member-sec" style="display:none;">
+        <div class="card">
+          <div class="card-title"><div class="ct-icon">📢</div>নোটিশ</div>
+          <div id="noticesList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav" id="bottomNav"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   CONSTANTS & STATE
+   ============================================================ */
+const DEFAULT_PASS = 'admin123';
+const LOCAL_KEY = 'gramin_somiti_v4_local';
+const GITHUB_CFG_KEY = 'gramin_somiti_github_cfg';
+const LOCAL_BACKUP_KEY = 'gramin_somiti_v4_backup';
+const SYNC_INTERVAL = 60000;
+
+let DB = null;
+let session = null;
+let github = null;
+let syncTimer = null;
+let isSyncing = false;
+let lastSyncTime = null;
+let githubOnline = false;
+
+/* ============================================================
+   DEFAULT DB
+   ============================================================ */
+function defaultDB() {
+  return {
+    settings: {
+      societyName: 'গ্রামীণ সমিতি',
+      monthlyFee: 100,
+      adminPass: DEFAULT_PASS,
+      estDate: '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: 4
+    },
+    members: [],
+    payments: [],
+    expenses: [],
+    categories: [
+      { id: 'cat_office', name: 'অফিস খরচ', icon: '🏢' },
+      { id: 'cat_meeting', name: 'সভা খরচ', icon: '🤝' },
+      { id: 'cat_medical', name: 'চিকিৎসা সহায়তা', icon: '🏥' },
+      { id: 'cat_edu', name: 'শিক্ষা সহায়তা', icon: '📚' },
+      { id: 'cat_relief', name: 'ত্রাণ সহায়তা', icon: '🎁' },
+      { id: 'cat_other', name: 'অন্যান্য', icon: '📌' }
+    ],
+    notices: []
+  };
+}
+
+function seedDemo(db) {
+  const demo = [
+    ['রহিম উদ্দিন','আব্দুল করিম','01711000001','গ্রাম: রামপুর'],
+    ['করিম মিয়া','মফিজ মিয়া','01711000002','গ্রাম: রামপুর'],
+    ['জামাল হোসেন','সিরাজ হোসেন','01711000003','গ্রাম: সোনাপুর'],
+    ['সেলিম রহমান','আব্দুর রহমান','01711000004','গ্রাম: সোনাপুর'],
+    ['আবুল কাশেম','রহিম উদ্দিন','01711000005','গ্রাম: রামপুর']
+  ];
+  demo.forEach(([n,f,p,a]) => {
+    db.members.push({
+      id: uid(), name:n, father:f, phone:p, address:a,
+      joined: todayISO(), active: true, photo: ''
+    });
+  });
+  db.notices.push({
+    id: uid(), title: 'স্বাগতম!',
+    body: 'গ্রামীণ সমিতির ডিজিটাল ফান্ড ম্যানেজমেন্ট সিস্টেমে আপনাকে স্বাগতম।',
+    date: todayISO()
+  });
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function nowISO() { return new Date().toISOString(); }
+function bengaliNum(n) {
+  const bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+  return String(n).replace(/\d/g, d => bn[d]);
+}
+function taka(n) { return '৳' + bengaliNum(Math.round(Number(n)||0)); }
+function esc(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+const MONTHS_BN = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+const MONTHS_SHORT = ['জানু','ফেব্রু','মার্চ','এপ্রি','মে','জুন','জুলা','আগ','সেপ্টে','অক্টো','নভে','ডিসে'];
+
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = '', 2800);
+}
+
+function currentYearMonth() {
+  const d = new Date();
+  return { year: d.getFullYear(), month: d.getMonth() };
+}
+
+const COLOR_CACHE = {};
+function colorFor(name) {
+  if (COLOR_CACHE[name]) return COLOR_CACHE[name];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h<<5)-h);
+  const hue = Math.abs(h) % 360;
+  const color = `hsl(${hue}, 65%, 45%)`;
+  COLOR_CACHE[name] = color;
+  return color;
+}
+
+function migrateDB(db) {
+  const def = defaultDB();
+  if (!db.settings) db.settings = def.settings;
+  ['members','payments','expenses','notices'].forEach(k => {
+    if (!Array.isArray(db[k])) db[k] = [];
+  });
+  if (!Array.isArray(db.categories) || db.categories.length === 0) db.categories = def.categories;
+  db.members.forEach(m => {
+    if (m.active === undefined) m.active = true;
+    if (m.father === undefined) m.father = '';
+    if (m.address === undefined) m.address = '';
+    if (m.photo === undefined) m.photo = '';
+  });
+  db.expenses.forEach(e => {
+    if (!e.categoryId) e.categoryId = 'cat_other';
+  });
+  return db;
+}
+
+/* ============================================================
+   GITHUB SYNC ENGINE
+   ============================================================ */
+const GH_API = 'https://api.github.com';
+
+function loadGitHubConfig() {
+  try {
+    const raw = localStorage.getItem(GITHUB_CFG_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
+function saveGitHubConfig(cfg) {
+  localStorage.setItem(GITHUB_CFG_KEY, JSON.stringify(cfg));
+}
+
+function clearGitHubConfig() {
+  localStorage.removeItem(GITHUB_CFG_KEY);
+}
+
+async function ghFetch(path, options = {}) {
+  if (!github?.token) throw new Error('No token');
+  const res = await fetch(GH_API + path, {
+    ...options,
+    headers: {
+      'Authorization': `token ${github.token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try {
+      const err = await res.json();
+      msg = err.message || msg;
+    } catch {}
+    if (res.status === 401) throw new Error('Token ভুল বা মেয়াদ শেষ');
+    if (res.status === 403) throw new Error('Permission নেই বা rate limit');
+    if (res.status === 404) throw new Error('Repo/ফাইল পাওয়া যায়নি');
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+async function verifyGitHubConfig(cfg) {
+  const res = await fetch(GH_API + `/repos/${cfg.user}/${cfg.repo}`, {
+    headers: { 'Authorization': `token ${cfg.token}`, 'Accept': 'application/vnd.github.v3+json' }
+  });
+  if (!res.ok) {
+    if (res.status === 401) throw new Error('Token ভুল বা মেয়াদ শেষ');
+    if (res.status === 404) throw new Error('Repo পাওয়া যায়নি বা Token-এ repo scope নেই');
+    throw new Error(`GitHub error (${res.status})`);
+  }
+  return res.json();
+}
+
+async function ghReadFile() {
+  const { user, repo, branch, path } = github;
+  try {
+    const data = await ghFetch(`/repos/${user}/${repo}/contents/${encodeURIComponent(path)}?ref=${branch}`);
+    const content = atob(data.content.replace(/\n/g, ''));
+    const bytes = new Uint8Array(content.length);
+    for (let i = 0; i < content.length; i++) bytes[i] = content.charCodeAt(i);
+    const text = new TextDecoder('utf-8').decode(bytes);
+    return { sha: data.sha, content: JSON.parse(text), exists: true };
+  } catch (e) {
+    if (e.message.includes('404') || e.message.includes('পাওয়া যায়নি')) {
+      return { sha: null, content: null, exists: false };
+    }
+    throw e;
+  }
+}
+
+async function ghWriteFile(data, sha = null) {
+  const { user, repo, branch, path } = github;
+  const jsonStr = JSON.stringify(data, null, 2);
+  const bytes = new TextEncoder().encode(jsonStr);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  const b64 = btoa(binary);
+
+  const body = {
+    message: `Update data ${new Date().toISOString()}`,
+    content: b64,
+    branch
+  };
+  if (sha) body.sha = sha;
+
+  const res = await ghFetch(`/repos/${user}/${repo}/contents/${encodeURIComponent(path)}`, {
+    method: 'PUT',
+    body: JSON.stringify(body)
+  });
+  return res.content.sha;
+}
+
+function showSyncBanner(msg, type = 'info', autoHide = 3000) {
+  const b = document.getElementById('syncBanner');
+  const spin = type === 'info' ? '<div class="spinner"></div>' : '';
+  b.innerHTML = spin + '<span>' + esc(msg) + '</span>';
+  b.className = 'show ' + type;
+  if (autoHide) {
+    clearTimeout(b._timer);
+    b._timer = setTimeout(() => b.className = '', autoHide);
+  }
+}
+
+function updateSyncDot() {
+  const dot = document.getElementById('syncDot');
+  if (dot) {
+    dot.className = 'status-dot ' + (github ? (githubOnline ? 'online' : 'offline') : '');
+  }
+  const loginDot = document.getElementById('loginSyncStatus');
+  const loginText = document.getElementById('loginSyncText');
+  if (loginDot && loginText) {
+    if (github) {
+      loginDot.className = 'sync-dot ' + (githubOnline ? 'online' : '');
+      loginText.textContent = githubOnline ? '☁️ ক্লাউড সিঙ্ক চালু' : '⚠️ ক্লাউড অফলাইন';
+    } else {
+      loginDot.className = 'sync-dot';
+      loginText.textContent = '💾 লোকাল স্টোরেজ';
+    }
+  }
+}
+
+async function syncFromGitHub(silent = false) {
+  if (!github || isSyncing) return false;
+  isSyncing = true;
+  const btn = document.getElementById('syncBtn');
+  btn?.classList.add('syncing');
+  if (!silent) showSyncBanner('GitHub থেকে ডেটা আনা হচ্ছে...', 'info', 0);
+
+  try {
+    const result = await ghReadFile();
+    githubOnline = true;
+    if (result.exists) {
+      const remote = migrateDB(result.content);
+      const local = DB;
+      const remoteTime = new Date(remote.settings.updatedAt || 0).getTime();
+      const localTime = new Date(local?.settings?.updatedAt || 0).getTime();
+
+      if (!local || remoteTime > localTime) {
+        DB = remote;
+        github.sha = result.sha;
+        saveLocalBackup();
+        if (!silent) showSyncBanner('✅ ডেটা আপডেট হয়েছে', 'success', 2500);
+        if (session) renderAdminOrMember();
+        return true;
+      } else {
+        github.sha = result.sha;
+        if (!silent) showSyncBanner('✅ লোকাল আপ-টু-ডেট', 'success', 2000);
+        return false;
+      }
+    } else {
+      if (!silent) showSyncBanner('প্রথমবার ডেটা তৈরি হচ্ছে...', 'info', 0);
+      const data = DB || (() => { const d = defaultDB(); seedDemo(d); return d; })();
+      github.sha = await ghWriteFile(data, null);
+      if (!silent) showSyncBanner('✅ ডেটা তৈরি হয়েছে', 'success', 2500);
+      return true;
+    }
+  } catch (e) {
+    githubOnline = false;
+    showSyncBanner('❌ ' + e.message, 'error', 4000);
+    console.error('Sync from GitHub failed:', e);
+    return false;
+  } finally {
+    isSyncing = false;
+    btn?.classList.remove('syncing');
+    lastSyncTime = new Date();
+    updateSyncDot();
+  }
+}
+
+async function syncToGitHub(silent = false) {
+  if (!github || isSyncing) return false;
+  isSyncing = true;
+  const btn = document.getElementById('syncBtn');
+  btn?.classList.add('syncing');
+  if (!silent) showSyncBanner('GitHub-এ আপলোড হচ্ছে...', 'info', 0);
+
+  try {
+    DB.settings.updatedAt = nowISO();
+    let freshSha = null;
+    try {
+      const check = await ghReadFile();
+      freshSha = check.sha;
+    } catch (e) {
+      if (!e.message.includes('404') && !e.message.includes('পাওয়া যায়নি')) throw e;
+    }
+    github.sha = await ghWriteFile(DB, freshSha);
+    githubOnline = true;
+    saveLocalBackup();
+    if (!silent) showSyncBanner('✅ GitHub-এ সিঙ্ক হয়েছে', 'success', 2500);
+    return true;
+  } catch (e) {
+    githubOnline = false;
+    showSyncBanner('❌ ' + e.message, 'error', 4000);
+    console.error('Sync to GitHub failed:', e);
+    saveLocalBackup();
+    return false;
+  } finally {
+    isSyncing = false;
+    btn?.classList.remove('syncing');
+    lastSyncTime = new Date();
+    updateSyncDot();
+  }
+}
+
+async function manualSync() {
+  if (!github) return toast('GitHub সংযোগ নেই', 'error');
+  await syncFromGitHub(true);
+  await syncToGitHub();
+  if (session) renderAdminOrMember();
+  toast('সিঙ্ক সম্পন্ন ✅');
+}
+
+function scheduleAutoSync() {
+  clearInterval(syncTimer);
+  syncTimer = setInterval(async () => {
+    if (!github || isSyncing) return;
+    try {
+      const result = await ghReadFile();
+      githubOnline = true;
+      if (result.exists) {
+        const remote = migrateDB(result.content);
+        const remoteTime = new Date(remote.settings.updatedAt || 0).getTime();
+        const localTime = new Date(DB?.settings?.updatedAt || 0).getTime();
+        if (remoteTime > localTime) {
+          DB = remote;
+          github.sha = result.sha;
+          saveLocalBackup();
+          if (session) renderAdminOrMember();
+          showSyncBanner('🔄 রিমোট থেকে আপডেট এসেছে', 'info', 2000);
+        }
+      }
+      updateSyncDot();
+    } catch (e) {
+      githubOnline = false;
+      updateSyncDot();
+    }
+  }, SYNC_INTERVAL);
+}
+
+/* ============================================================
+   LOCAL STORAGE
+   ============================================================ */
+function saveLocalBackup() {
+  try {
+    if (DB) localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(DB));
+  } catch (e) { console.warn('Local backup failed', e); }
+}
+
+function loadLocalBackup() {
+  try {
+    const raw = localStorage.getItem(LOCAL_BACKUP_KEY) || localStorage.getItem(LOCAL_KEY);
+    if (raw) return migrateDB(JSON.parse(raw));
+  } catch {}
+  return null;
+}
+
+let pushDebounceTimer = null;
+function saveDB(immediate = false) {
+  saveLocalBackup();
+  if (!github) return;
+  clearTimeout(pushDebounceTimer);
+  if (immediate) {
+    syncToGitHub(true);
+  } else {
+    pushDebounceTimer = setTimeout(() => syncToGitHub(true), 1500);
+  }
+}
+
+/* ============================================================
+   GITHUB SETTINGS MODAL (in admin panel only)
+   ============================================================ */
+function openGitHubSettings() {
+  const cfg = loadGitHubConfig();
+  const html = `
+    <h3>☁️ GitHub ক্লাউড সিঙ্ক</h3>
+    <div class="setup-help">
+      <h4>📌 ধাপ ১: Token তৈরি করুন</h4>
+      <ol>
+        <li><a href="https://github.com/settings/tokens/new?scopes=repo&description=SomitiApp" target="_blank" rel="noopener">এখানে ক্লিক করুন</a></li>
+        <li>Scope: <code>repo</code> ✓ সিলেক্ট করুন</li>
+        <li>Generate token → কপি করুন</li>
+      </ol>
+      <h4 style="margin-top:12px;">📌 ধাপ ২: প্রাইভেট Repo</h4>
+      <ol>
+        <li>GitHub-এ একটি <b>Private</b> রিপো তৈরি করুন</li>
+        <li>নাম নিচে লিখুন (যেমন: <code>somiti</code>)</li>
+      </ol>
+    </div>
+    <div class="field"><label>GitHub Token *</label><input type="password" id="ghToken" value="${cfg?.token||''}" placeholder="ghp_xxx"></div>
+    <div class="field"><label>Username *</label><input type="text" id="ghUser" value="${cfg?.user||''}" placeholder="your-username"></div>
+    <div class="field"><label>Repo নাম *</label><input type="text" id="ghRepo" value="${cfg?.repo||''}" placeholder="somiti"></div>
+    <div class="field"><label>Branch</label><input type="text" id="ghBranch" value="${cfg?.branch||'main'}"></div>
+    <div class="field"><label>ফাইল পাথ</label><input type="text" id="ghPath" value="${cfg?.path||'data.json'}"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">বাতিল</button>
+      <button class="btn btn-primary" onclick="submitGitHubSettings()">🔗 সংযোগ</button>
+    </div>
+  `;
+  showModal(html);
+}
+
+async function submitGitHubSettings() {
+  const token = document.getElementById('ghToken').value.trim();
+  const user = document.getElementById('ghUser').value.trim();
+  const repo = document.getElementById('ghRepo').value.trim();
+  const branch = document.getElementById('ghBranch').value.trim() || 'main';
+  const path = document.getElementById('ghPath').value.trim() || 'data.json';
+  if (!token || !user || !repo) return toast('সব তথ্য দিন', 'error');
+  if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
+    if (!confirm('Token সাধারণত "ghp_" বা "github_pat_" দিয়ে শুরু হয়। চালিয়ে যাবেন?')) return;
+  }
+
+  closeModal();
+  showSyncBanner('সংযোগ পরীক্ষা...', 'info', 0);
+  const cfg = { token, user, repo, branch, path };
+  try {
+    await verifyGitHubConfig(cfg);
+    github = cfg;
+    saveGitHubConfig(cfg);
+    await syncFromGitHub(true);
+    if (!DB) { DB = defaultDB(); seedDemo(DB); await syncToGitHub(true); }
+    githubOnline = true;
+    showSyncBanner('✅ সংযুক্ত', 'success', 2000);
+    scheduleAutoSync();
+    if (session) {
+      if (session.role === 'admin') renderAdmin();
+      else renderMember();
+    }
+    updateGitHubStatus();
+    updateSyncDot();
+  } catch (e) {
+    githubOnline = false;
+    showSyncBanner('❌ ' + e.message, 'error', 4000);
+    updateSyncDot();
+  }
+}
+
+function disconnectGitHub() {
+  if (!confirm('GitHub সংযোগ বিচ্ছিন্ন করবেন? ডেটা লোকাল স্টোরেজে থাকবে।')) return;
+  clearGitHubConfig();
+  github = null;
+  githubOnline = false;
+  clearInterval(syncTimer);
+  toast('সংযোগ বিচ্ছিন্ন', 'success');
+  if (session?.role === 'admin') { updateGitHubStatus(); updateSyncDot(); }
+}
+
+function updateGitHubStatus() {
+  const el = document.getElementById('githubStatus');
+  const active = document.getElementById('githubActiveActions');
+  const inactive = document.getElementById('githubInactiveActions');
+  if (!el) return;
+  if (!github) {
+    el.innerHTML = '<div class="connection-status fail">❌ GitHub সংযুক্ত নয় — শুধু লোকাল স্টোরেজ</div>';
+    if (active) active.style.display = 'none';
+    if (inactive) inactive.style.display = 'block';
+    return;
+  }
+  const online = githubOnline
+    ? '<span style="color:var(--success);">● অনলাইন</span>'
+    : '<span style="color:var(--danger);">● অফলাইন</span>';
+  el.innerHTML = `
+    <div class="connection-status ok">
+      ✅ ${esc(github.user)}/${esc(github.repo)}
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.8;">
+      <div>Branch: <b>${esc(github.branch)}</b> · File: <b>${esc(github.path)}</b></div>
+      <div>স্ট্যাটাস: ${online}</div>
+      <div>শেষ সিঙ্ক: ${lastSyncTime ? lastSyncTime.toLocaleTimeString('bn-BD') : 'এখনো হয়নি'}</div>
+      <div>অটো-সিঙ্ক: প্রতি ${bengaliNum(SYNC_INTERVAL/1000)} সেকেন্ডে</div>
+    </div>
+  `;
+  if (active) active.style.display = 'block';
+  if (inactive) inactive.style.display = 'none';
+}
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+let selectedRole = 'admin';
+function switchRole(role) {
+  selectedRole = role;
+  document.querySelectorAll('.role-tab').forEach(b => b.classList.toggle('active', b.dataset.role === role));
+  document.getElementById('adminLogin').style.display = role === 'admin' ? 'block' : 'none';
+  document.getElementById('memberLogin').style.display = role === 'member' ? 'block' : 'none';
+  if (role === 'member') populateMemberSelect();
+}
+
+function populateMemberSelect() {
+  const sel = document.getElementById('memberSelect');
+  if (!sel || !DB) return;
+  sel.innerHTML = '';
+  if (DB.members.length === 0) {
+    sel.innerHTML = '<option value="">— কোনো সদস্য নেই —</option>';
+    return;
+  }
+  DB.members.filter(m => m.active !== false).forEach(m => {
+    const o = document.createElement('option');
+    o.value = m.id; o.textContent = m.name + (m.phone ? ' (' + m.phone.slice(-4) + ')' : '');
+    sel.appendChild(o);
+  });
+}
+
+function doAdminLogin() {
+  const pass = document.getElementById('adminPass').value;
+  if (pass === DB.settings.adminPass) {
+    session = { role: 'admin' };
+    document.getElementById('adminPass').value = '';
+    showApp();
+  } else toast('ভুল পাসওয়ার্ড!', 'error');
+}
+
+function doMemberLogin() {
+  const id = document.getElementById('memberSelect').value;
+  const phone4 = document.getElementById('memberPhone').value.trim();
+  const m = DB.members.find(x => x.id === id);
+  if (!m) return toast('সদস্য নির্বাচন করুন', 'error');
+  if (!phone4 || phone4.length !== 4) return toast('৪ ডিজিট দিন', 'error');
+  const actual = (m.phone || '').replace(/\D/g,'').slice(-4);
+  if (actual && actual === phone4) {
+    session = { role: 'member', id: m.id };
+    document.getElementById('memberPhone').value = '';
+    showApp();
+  } else toast('নম্বর মিলছে না!', 'error');
+}
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  if (session.role === 'admin') {
+    document.getElementById('adminPanel').classList.add('active');
+    document.getElementById('memberPanel').classList.remove('active');
+    document.getElementById('topAvatar').textContent = 'A';
+    document.getElementById('topName').textContent = 'অ্যাডমিন';
+    document.getElementById('topRole').textContent = DB.settings.societyName + ' · অ্যাডমিন';
+    buildBottomNav('admin');
+    renderAdmin();
+  } else {
+    document.getElementById('adminPanel').classList.remove('active');
+    document.getElementById('memberPanel').classList.add('active');
+    const m = DB.members.find(x => x.id === session.id);
+    const av = document.getElementById('topAvatar');
+    if (m?.photo) av.innerHTML = `<img src="${m.photo}" alt="">`;
+    else av.textContent = (m?.name || '?').charAt(0);
+    document.getElementById('topName').textContent = m?.name || 'সদস্য';
+    document.getElementById('topRole').textContent = DB.settings.societyName + ' · সদস্য';
+    buildBottomNav('member');
+    renderMember();
+  }
+  updateSyncDot();
+  window.scrollTo(0,0);
+}
+
+function renderAdminOrMember() {
+  if (!session) return;
+  if (session.role === 'admin') renderAdmin();
+  else renderMember();
+}
+
+function logout() {
+  session = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  switchRole('admin');
+  updateSyncDot();
+}
+
+/* ============================================================
+   BOTTOM NAV
+   ============================================================ */
+function buildBottomNav(role) {
+  const nav = document.getElementById('bottomNav');
+  nav.innerHTML = '';
+  const items = role === 'admin' ? [
+    ['overview','📊','সারসংক্ষেপ', () => adminTab('overview')],
+    ['members','👥','সদস্য', () => adminTab('members')],
+    ['collections','💰','আদায়', () => adminTab('collections')],
+    ['expenses','📤','খরচ', () => adminTab('expenses')],
+    ['reports','📈','রিপোর্ট', () => adminTab('reports')]
+  ] : [
+    ['mSummary','📊','সারসংক্ষেপ', () => memberTab('mSummary')],
+    ['mProfile','👤','প্রোফাইল', () => memberTab('mProfile')],
+    ['mHistory','📅','পেমেন্ট', () => memberTab('mHistory')],
+    ['mFund','🏦','ফান্ড', () => memberTab('mFund')],
+    ['mNotices','📢','নোটিশ', () => memberTab('mNotices')]
+  ];
+  items.forEach(([key, icon, label, fn]) => {
+    const b = document.createElement('button');
+    b.innerHTML = `<span class="nav-icon">${icon}</span><span>${label}</span>`;
+    b.onclick = fn;
+    b.dataset.tab = key;
+    nav.appendChild(b);
+  });
+}
+function updateBottomNavActive(key) {
+  document.querySelectorAll('.bottom-nav button').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === key);
+  });
+}
+
+/* ============================================================
+   ADMIN TABS
+   ============================================================ */
+const ADMIN_TAB_MAP = { overview:0, members:1, collections:2, expenses:3, categories:4, reports:5, notices:6, settings:7 };
+function adminTab(tab, btn) {
+  document.querySelectorAll('.admin-sec').forEach(s => s.style.display = 'none');
+  const el = document.getElementById('a' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  if (el) el.style.display = 'block';
+  document.querySelectorAll('#adminTabs .nav-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else {
+    const tabs = document.querySelectorAll('#adminTabs .nav-tab');
+    if (ADMIN_TAB_MAP[tab] !== undefined) tabs[ADMIN_TAB_MAP[tab]]?.classList.add('active');
+  }
+  updateBottomNavActive(tab);
+  const renderers = {
+    overview: renderOverview, members: renderMembers, collections: renderCollections,
+    expenses: renderExpenses, categories: renderCategories, reports: renderReports,
+    notices: renderNotices, settings: renderSettings
+  };
+  renderers[tab]?.();
+}
+
+function renderAdmin() {
+  renderStats();
+  renderOverview();
+  populateMemberSelect();
+  populatePaySelectors();
+  populateYearSelectors();
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+function totalCollected() { return DB.payments.reduce((s,p) => s + Number(p.amount||0), 0); }
+function totalExpense() { return DB.expenses.reduce((s,e) => s + Number(e.amount||0), 0); }
+function currentBalance() { return totalCollected() - totalExpense(); }
+function activeMembers() { return DB.members.filter(m => m.active !== false); }
+function collectedForMonth(year, month) {
+  return DB.payments.filter(p => Number(p.year) === Number(year) && Number(p.month) === Number(month))
+    .reduce((s,p) => s + Number(p.amount||0), 0);
+}
+function expenseForMonth(year, month) {
+  return DB.expenses.filter(e => e.date && Number(e.date.slice(0,4)) === Number(year) && Number(e.date.slice(5,7)) === Number(month)+1)
+    .reduce((s,e) => s + Number(e.amount||0), 0);
+}
+function paidMembersForMonth(year, month) {
+  const set = new Set();
+  DB.payments.filter(p => Number(p.year)===Number(year) && Number(p.month)===Number(month))
+    .forEach(p => set.add(p.memberId));
+  return set;
+}
+function dueCountForMonth(year, month) {
+  const paid = paidMembersForMonth(year, month);
+  return activeMembers().filter(m => !paid.has(m.id)).length;
+}
+
+function renderStats() {
+  const { year, month } = currentYearMonth();
+  const due = dueCountForMonth(year, month);
+  document.getElementById('adminStats').innerHTML = `
+    <div class="stat-card"><div class="icon">👥</div><div class="value">${bengaliNum(activeMembers().length)}</div><div class="label">সদস্য</div></div>
+    <div class="stat-card blue"><div class="icon">💰</div><div class="value">${taka(totalCollected())}</div><div class="label">মোট আদায়</div></div>
+    <div class="stat-card accent"><div class="icon">🏦</div><div class="value">${taka(currentBalance())}</div><div class="label">ব্যালেন্স</div></div>
+    <div class="stat-card dues"><div class="icon">⏳</div><div class="value">${bengaliNum(due)}</div><div class="label">বকেয়া</div></div>`;
+}
+
+function renderOverview() {
+  renderStats();
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ year: d.getFullYear(), month: d.getMonth() });
+  }
+  const maxVal = Math.max(...months.map(m => Math.max(collectedForMonth(m.year, m.month), expenseForMonth(m.year, m.month))), 1);
+  let chartHtml = '<div class="bar-chart">';
+  months.forEach(m => {
+    const inc = collectedForMonth(m.year, m.month);
+    const exp = expenseForMonth(m.year, m.month);
+    const incH = Math.max(4, (inc/maxVal)*100);
+    const expH = Math.max(4, (exp/maxVal)*100);
+    chartHtml += `<div class="bar-wrap"><div style="display:flex;gap:2px;width:100%;height:100%;align-items:flex-end;justify-content:center;">
+      <div class="bar" style="height:${incH}%;max-width:20px;"></div>
+      <div class="bar expense" style="height:${expH}%;max-width:20px;"></div>
+    </div><div class="bar-label">${MONTHS_SHORT[m.month]}</div></div>`;
+  });
+  chartHtml += '</div><div class="chart-legend"><span><span class="legend-dot" style="background:var(--primary)"></span>আদায়</span><span><span class="legend-dot" style="background:var(--danger)"></span>খরচ</span></div>';
+  document.getElementById('overviewChart').innerHTML = chartHtml;
+
+  const { year, month } = currentYearMonth();
+  const paid = paidMembersForMonth(year, month);
+  const dueMembers = activeMembers().filter(m => !paid.has(m.id));
+  document.getElementById('dueMembersList').innerHTML = dueMembers.length === 0
+    ? '<div class="empty"><span class="emoji">✅</span>এ মাসে বকেয়া নেই</div>'
+    : dueMembers.map(m => `<div class="member-row">
+        <div class="member-left">
+          <div class="member-avatar" style="background:${colorFor(m.name)}">${m.photo ? `<img src="${m.photo}">` : esc(m.name.charAt(0))}</div>
+          <div><div class="member-name">${esc(m.name)}</div><div class="member-sub">${esc(m.phone||'')}</div></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="quickPay('${m.id}',${year},${month})">আদায়</button>
+      </div>`).join('');
+
+  const tx = [];
+  DB.payments.forEach(p => tx.push({...p, type:'in'}));
+  DB.expenses.forEach(e => tx.push({...e, type:'out'}));
+  tx.sort((a,b) => (b.date||'').localeCompare(a.date||'') || String(b.id).localeCompare(String(a.id)));
+  const recent = tx.slice(0, 8);
+  document.getElementById('recentTx').innerHTML = recent.length === 0
+    ? '<div class="empty">লেনদেন নেই</div>'
+    : recent.map(t => {
+        if (t.type === 'in') {
+          const m = DB.members.find(x => x.id === t.memberId);
+          return `<div class="list-row"><div><div class="member-name">${esc(m?.name || '?')}</div><div class="member-sub">${MONTHS_BN[t.month]} ${bengaliNum(t.year)}</div></div><span class="amount-pos">+${taka(t.amount)}</span></div>`;
+        } else {
+          const cat = DB.categories.find(c => c.id === t.categoryId);
+          return `<div class="list-row"><div><div class="member-name">${cat?.icon||'📌'} ${esc(t.desc)}</div><div class="member-sub">${cat?.name||''} · ${t.date||''}</div></div><span class="amount-neg">-${taka(t.amount)}</span></div>`;
+        }
+      }).join('');
+}
+
+/* ============================================================
+   MEMBERS
+   ============================================================ */
+function renderMembers() {
+  populateMemberSelect();
+  document.getElementById('memberCount').textContent = bengaliNum(activeMembers().length);
+  const search = (document.getElementById('memberSearch')?.value || '').trim().toLowerCase();
+  let list = DB.members;
+  if (search) {
+    list = list.filter(m => m.name.toLowerCase().includes(search) || (m.phone||'').includes(search) || (m.father||'').toLowerCase().includes(search));
+  }
+  const el = document.getElementById('membersList');
+  if (list.length === 0) { el.innerHTML = '<div class="empty"><span class="emoji">👥</span>কোনো সদস্য নেই</div>'; return; }
+  el.innerHTML = list.map(m => {
+    const paidCount = DB.payments.filter(p => p.memberId === m.id).length;
+    const totalPaid = DB.payments.filter(p => p.memberId === m.id).reduce((s,p)=>s+Number(p.amount||0),0);
+    return `<div class="member-row">
+      <div class="member-left">
+        <div class="member-avatar" style="background:${colorFor(m.name)}">${m.photo ? `<img src="${m.photo}">` : esc(m.name.charAt(0))}</div>
+        <div style="min-width:0;">
+          <div class="member-name">${esc(m.name)} ${m.active===false?'<span class="badge badge-inactive">নিষ্ক্রিয়</span>':''}</div>
+          <div class="member-sub">${esc(m.phone||'—')} · ${bengaliNum(paidCount)} মাস · ${taka(totalPaid)}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:5px;flex-shrink:0;">
+        <button class="btn btn-outline btn-sm" onclick="viewMember('${m.id}')">👁️</button>
+        <button class="btn btn-ghost btn-sm" onclick="editMember('${m.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAddMemberModal() {
+  window._formPhoto = '';
+  showModal(`
+    <h3>➕ নতুন সদস্য</h3>
+    <div class="field"><label>নাম *</label><input id="fmName" type="text"></div>
+    <div class="field"><label>পিতার নাম</label><input id="fmFather" type="text"></div>
+    <div class="field"><label>মোবাইল *</label><input id="fmPhone" type="tel" inputmode="numeric"></div>
+    <div class="field"><label>ঠিকানা</label><input id="fmAddress" type="text"></div>
+    <div class="field"><label>ছবি</label>
+      <div class="file-upload" onclick="document.getElementById('fmPhotoFile').click()">
+        <div class="file-preview" id="fmPhotoPreview">📷</div>
+        <div><div style="font-weight:700;font-size:13px;">ছবি নির্বাচন</div></div>
+      </div>
+      <input type="file" id="fmPhotoFile" accept="image/*" style="display:none" onchange="previewFormPhoto(event)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">বাতিল</button>
+      <button class="btn btn-primary" onclick="submitAddMember()">যোগ</button>
+    </div>
+  `);
+}
+
+function previewFormPhoto(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  if (file.size > 2*1024*1024) return toast('ছবি 2MB এর কম হতে হবে', 'error');
+  const reader = new FileReader();
+  reader.onload = e => {
+    window._formPhoto = e.target.result;
+    document.getElementById('fmPhotoPreview').innerHTML = `<img src="${e.target.result}">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function submitAddMember() {
+  const name = document.getElementById('fmName').value.trim();
+  const phone = document.getElementById('fmPhone').value.trim();
+  if (!name) return toast('নাম দিন', 'error');
+  if (!phone) return toast('মোবাইল নম্বর দিন', 'error');
+  if (DB.members.some(m => m.phone === phone)) return toast('এই নম্বরে সদস্য আছে', 'error');
+  DB.members.push({
+    id: uid(), name,
+    father: document.getElementById('fmFather').value.trim(),
+    phone,
+    address: document.getElementById('fmAddress').value.trim(),
+    joined: todayISO(), active: true,
+    photo: window._formPhoto || ''
+  });
+  saveDB();
+  closeModal();
+  toast('সদস্য যোগ হয়েছে ✅');
+  renderMembers(); renderStats();
+}
+
+function viewMember(id) {
+  const m = DB.members.find(x => x.id === id);
+  if (!m) return;
+  const myPay = DB.payments.filter(p => p.memberId === id).sort((a,b) => (b.year*12+b.month)-(a.year*12+a.month));
+  const totalPaid = myPay.reduce((s,p) => s + Number(p.amount||0), 0);
+  showModal(`
+    <div style="text-align:center;margin-bottom:16px;">
+      <div class="member-avatar" style="width:80px;height:80px;font-size:30px;margin:0 auto 10px;background:${colorFor(m.name)}">
+        ${m.photo ? `<img src="${m.photo}">` : esc(m.name.charAt(0))}
+      </div>
+      <div style="font-size:18px;font-weight:800;">${esc(m.name)}</div>
+      <div style="font-size:12px;color:var(--text-muted);">${esc(m.phone||'')}</div>
+    </div>
+    <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:14px;font-size:13px;line-height:1.9;">
+      <div><b>পিতার নাম:</b> ${esc(m.father||'—')}</div>
+      <div><b>ঠিকানা:</b> ${esc(m.address||'—')}</div>
+      <div><b>যোগদান:</b> ${m.joined||'—'}</div>
+      <div><b>মোট জমা:</b> <span style="color:var(--success);font-weight:800;">${taka(totalPaid)}</span></div>
+    </div>
+    <div style="font-size:13px;font-weight:800;margin-bottom:8px;">📅 পেমেন্ট</div>
+    <div style="max-height:200px;overflow-y:auto;">
+      ${myPay.length === 0 ? '<div class="empty">পেমেন্ট নেই</div>' :
+        myPay.map(p => `<div class="list-row" style="padding:8px 0;"><span>${MONTHS_BN[p.month]} ${bengaliNum(p.year)}</span><span class="amount-pos">+${taka(p.amount)}</span></div>`).join('')}
+    </div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">বন্ধ</button></div>
+  `);
+}
+
+function editMember(id) {
+  const m = DB.members.find(x => x.id === id);
+  if (!m) return;
+  window._formPhoto = m.photo || '';
+  showModal(`
+    <h3>✏️ সম্পাদনা</h3>
+    <div class="field"><label>নাম *</label><input id="fmName" type="text" value="${esc(m.name)}"></div>
+    <div class="field"><label>পিতার নাম</label><input id="fmFather" type="text" value="${esc(m.father||'')}"></div>
+    <div class="field"><label>মোবাইল *</label><input id="fmPhone" type="tel" value="${esc(m.phone||'')}" inputmode="numeric"></div>
+    <div class="field"><label>ঠিকানা</label><input id="fmAddress" type="text" value="${esc(m.address||'')}"></div>
+    <div class="field"><label>ছবি</label>
+      <div class="file-upload" onclick="document.getElementById('fmPhotoFile').click()">
+        <div class="file-preview" id="fmPhotoPreview">${m.photo ? `<img src="${m.photo}">` : '📷'}</div>
+        <div><div style="font-weight:700;font-size:13px;">ছবি পরিবর্তন</div></div>
+      </div>
+      <input type="file" id="fmPhotoFile" accept="image/*" style="display:none" onchange="previewFormPhoto(event)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">বাতিল</button>
+      <button class="btn btn-primary" onclick="submitEditMember('${id}')">সংরক্ষণ</button>
+    </div>
+  `);
+}
+
+function submitEditMember(id) {
+  const m = DB.members.find(x => x.id === id);
+  if (!m) return;
+  const name = document.getElementById('fmName').value.trim();
+  const phone = document.getElementById('fmPhone').value.trim();
+  if (!name) return toast('নাম দিন', 'error');
+  if (!phone) return toast('মোবাইল দিন', 'error');
+  if (DB.members.some(x => x.id !== id && x.phone === phone)) return toast('এই নম্বরে সদস্য আছে', 'error');
+  m.name = name;
+  m.father = document.getElementById('fmFather').value.trim();
+  m.phone = phone;
+  m.address = document.getElementById('fmAddress').value.trim();
+  if (window._formPhoto !== undefined) m.photo = window._formPhoto;
+  saveDB();
+  closeModal();
+  toast('আপডেট হয়েছে ✅');
+  renderMembers();
+}
+
+function deleteMember(id) {
+  const m = DB.members.find(x => x.id === id);
+  if (!m) return;
+  if (!confirm(`"${m.name}" মুছবেন? সব পেমেন্টও মুছে যাবে।`)) return;
+  DB.members = DB.members.filter(x => x.id !== id);
+  DB.payments = DB.payments.filter(p => p.memberId !== id);
+  saveDB(); renderMembers(); renderStats(); populateMemberSelect();
+  toast('মুছে ফেলা হয়েছে');
+}
+
+/* ============================================================
+   COLLECTIONS
+   ============================================================ */
+function populatePaySelectors() {
+  const pm = document.getElementById('payMember');
+  if (pm) pm.innerHTML = '<option value="">— সদস্য —</option>' + activeMembers().map(m => `<option value="${m.id}">${esc(m.name)} (${esc((m.phone||'').slice(-4))})</option>`).join('');
+  const now = new Date();
+  const py = document.getElementById('payYear');
+  if (py) {
+    const years = new Set([now.getFullYear()]);
+    DB.payments.forEach(p => years.add(Number(p.year)));
+    py.innerHTML = [...years].sort((a,b)=>b-a).map(y => `<option value="${y}">${bengaliNum(y)}</option>`).join('');
+  }
+  const pmo = document.getElementById('payMonth');
+  if (pmo) pmo.innerHTML = MONTHS_BN.map((m,i) => `<option value="${i}" ${i===now.getMonth()?'selected':''}>${m}</option>`).join('');
+  const pd = document.getElementById('payDate');
+  if (pd && !pd.value) pd.value = todayISO();
+  const pa = document.getElementById('payAmount');
+  if (pa && !pa.value) pa.value = DB.settings.monthlyFee;
+  const sm = document.getElementById('statusMonth');
+  const sy = document.getElementById('statusYear');
+  if (sm) sm.innerHTML = MONTHS_BN.map((m,i) => `<option value="${i}" ${i===now.getMonth()?'selected':''}>${m}</option>`).join('');
+  if (sy) {
+    const years = new Set([now.getFullYear()]);
+    DB.payments.forEach(p => years.add(Number(p.year)));
+    sy.innerHTML = [...years].sort((a,b)=>b-a).map(y => `<option value="${y}">${bengaliNum(y)}</option>`).join('');
+  }
+}
+
+function renderCollections() {
+  populatePaySelectors();
+  renderMonthStatus();
+  renderRecentPayments();
+}
+
+function renderRecentPayments() {
+  const list = [...DB.payments].sort((a,b) => (b.date||'').localeCompare(a.date||'')).slice(0, 10);
+  const el = document.getElementById('recentPayments');
+  if (!el) return;
+  el.innerHTML = list.length === 0 ? '<div class="empty">কোনো আদায় নেই</div>'
+    : list.map(p => {
+        const m = DB.members.find(x => x.id === p.memberId);
+        return `<div class="list-row"><div><div class="member-name">${esc(m?.name||'?')}</div><div class="member-sub">${MONTHS_BN[p.month]} ${bengaliNum(p.year)} · ${p.date}</div></div>
+          <div style="display:flex;align-items:center;gap:6px;"><span class="amount-pos">+${taka(p.amount)}</span>
+          <button class="btn btn-danger btn-sm" onclick="deletePayment('${p.id}')">🗑️</button></div></div>`;
+      }).join('');
+}
+
+function deletePayment(id) {
+  if (!confirm('পেমেন্ট মুছবেন?')) return;
+  DB.payments = DB.payments.filter(p => p.id !== id);
+  saveDB(); renderCollections(); renderStats(); renderOverview(); toast('মুছে ফেলা হয়েছে');
+}
+
+function recordPayment() {
+  const memberId = document.getElementById('payMember').value;
+  const year = Number(document.getElementById('payYear').value);
+  const month = Number(document.getElementById('payMonth').value);
+  const amount = Number(document.getElementById('payAmount').value);
+  const date = document.getElementById('payDate').value || todayISO();
+  if (!memberId) return toast('সদস্য নির্বাচন করুন', 'error');
+  if (!amount || amount <= 0) return toast('টাকার পরিমাণ দিন', 'error');
+  const exists = DB.payments.find(p => p.memberId === memberId && Number(p.year)===year && Number(p.month)===month);
+  if (exists && !confirm('এই মাসে জমা আছে। আবার যোগ করবেন?')) return;
+  DB.payments.push({ id: uid(), memberId, year, month, amount, date, note: '' });
+  saveDB();
+  toast('আদায় হয়েছে ✅');
+  renderStats(); renderMonthStatus(); renderRecentPayments(); renderOverview();
+}
+
+function renderMonthStatus() {
+  const sm = document.getElementById('statusMonth');
+  const sy = document.getElementById('statusYear');
+  if (!sm || !sy) return;
+  const month = Number(sm.value), year = Number(sy.value);
+  const paid = paidMembersForMonth(year, month);
+  const list = document.getElementById('monthStatusList');
+  const members = activeMembers();
+  if (members.length === 0) { list.innerHTML = '<div class="empty">সদস্য নেই</div>'; return; }
+  list.innerHTML = members.map(m => {
+    const isPaid = paid.has(m.id);
+    return `<div class="member-row">
+      <div class="member-left">
+        <div class="member-avatar" style="background:${colorFor(m.name)}">${m.photo ? `<img src="${m.photo}">` : esc(m.name.charAt(0))}</div>
+        <div class="member-name">${esc(m.name)}</div>
+      </div>
+      ${isPaid ? '<span class="badge badge-paid">✅ জমা</span>'
+        : `<button class="btn btn-outline btn-sm" onclick="quickPay('${m.id}',${year},${month})">💰 আদায়</button>`}
+    </div>`;
+  }).join('');
+}
+
+function quickPay(memberId, year, month) {
+  DB.payments.push({ id: uid(), memberId, year, month, amount: Number(DB.settings.monthlyFee) || 100, date: todayISO(), note: '' });
+  saveDB();
+  toast('আদায় ✅');
+  renderStats(); renderMonthStatus(); renderOverview(); renderRecentPayments();
+}
+
+/* ============================================================
+   EXPENSES
+   ============================================================ */
+function renderExpenses() {
+  const catSel = document.getElementById('expCategory');
+  if (catSel) catSel.innerHTML = DB.categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+  const ed = document.getElementById('expDate');
+  if (ed && !ed.value) ed.value = todayISO();
+  const list = document.getElementById('expensesList');
+  if (!list) return;
+  const exps = [...DB.expenses].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  list.innerHTML = exps.length === 0 ? '<div class="empty"><span class="emoji">🧾</span>খরচ নেই</div>'
+    : exps.map(e => {
+        const cat = DB.categories.find(c => c.id === e.categoryId);
+        return `<div class="list-row"><div><div class="member-name">${cat?.icon||'📌'} ${esc(e.desc)}</div><div class="member-sub">${cat?.name||''} · ${e.date||''}</div></div>
+          <div style="display:flex;align-items:center;gap:6px;"><span class="amount-neg">-${taka(e.amount)}</span>
+          <button class="btn btn-danger btn-sm" onclick="deleteExpense('${e.id}')">🗑️</button></div></div>`;
+      }).join('');
+}
+
+function addExpense() {
+  const desc = document.getElementById('expDesc').value.trim();
+  const amount = Number(document.getElementById('expAmount').value);
+  const categoryId = document.getElementById('expCategory').value;
+  const date = document.getElementById('expDate').value || todayISO();
+  if (!desc) return toast('বিবরণ দিন', 'error');
+  if (!amount || amount <= 0) return toast('টাকার পরিমাণ দিন', 'error');
+  DB.expenses.push({ id: uid(), desc, amount, categoryId, date });
+  saveDB();
+  document.getElementById('expDesc').value = '';
+  document.getElementById('expAmount').value = '';
+  toast('খরচ যোগ ✅');
+  renderExpenses(); renderStats(); renderOverview();
+}
+
+function deleteExpense(id) {
+  if (!confirm('মুছবেন?')) return;
+  DB.expenses = DB.expenses.filter(e => e.id !== id);
+  saveDB(); renderExpenses(); renderStats(); renderOverview(); toast('মুছে ফেলা হয়েছে');
+}
+
+/* ============================================================
+   CATEGORIES
+   ============================================================ */
+function renderCategories() {
+  const totals = {};
+  DB.expenses.forEach(e => { const id = e.categoryId || 'cat_other'; totals[id] = (totals[id] || 0) + Number(e.amount||0); });
+  const grand = Object.values(totals).reduce((s,v) => s+v, 0);
+  document.getElementById('categoryBreakdown').innerHTML = grand === 0
+    ? '<div class="empty">খরচ নেই</div>'
+    : DB.categories.map(c => {
+        const amt = totals[c.id] || 0;
+        if (amt === 0) return '';
+        const pct = (amt/grand*100).toFixed(1);
+        return `<div class="cat-bar"><div class="cat-bar-top"><span>${c.icon} ${esc(c.name)}</span><span>${taka(amt)} (${bengaliNum(pct)}%)</span></div>
+          <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%"></div></div></div>`;
+      }).join('') || '<div class="empty">খরচ নেই</div>';
+
+  document.getElementById('categoriesList').innerHTML = DB.categories.map(c => {
+    const count = DB.expenses.filter(e => e.categoryId === c.id).length;
+    const total = DB.expenses.filter(e => e.categoryId === c.id).reduce((s,e)=>s+Number(e.amount||0),0);
+    return `<div class="member-row">
+      <div class="member-left">
+        <div class="member-avatar" style="background:linear-gradient(135deg,#b2dfdb,#80cbc4);color:#004d40;font-size:20px;">${c.icon||'📌'}</div>
+        <div><div class="member-name">${esc(c.name)}</div><div class="member-sub">${bengaliNum(count)} লেনদেন · ${taka(total)}</div></div>
+      </div>
+      ${DB.categories.length > 1 ? `<button class="btn btn-danger btn-sm" onclick="deleteCategory('${c.id}')">🗑️</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function addCategory() {
+  const name = document.getElementById('newCatName').value.trim();
+  const icon = document.getElementById('newCatIcon').value.trim() || '📌';
+  if (!name) return toast('নাম দিন', 'error');
+  if (DB.categories.some(c => c.name === name)) return toast('এই খাত আছে', 'error');
+  DB.categories.push({ id: uid(), name, icon });
+  saveDB();
+  document.getElementById('newCatName').value = '';
+  document.getElementById('newCatIcon').value = '';
+  toast('খাত যোগ ✅');
+  renderCategories();
+}
+
+function deleteCategory(id) {
+  if (DB.categories.length <= 1) return toast('কমপক্ষে একটি খাত থাকতে হবে', 'error');
+  const count = DB.expenses.filter(e => e.categoryId === id).length;
+  if (count > 0) {
+    if (!confirm(`${count} টি খরচ আছে। "অন্যান্য" তে যাবে। চালিয়ে যাবেন?`)) return;
+    const other = DB.categories.find(c => c.id !== id);
+    DB.expenses.forEach(e => { if (e.categoryId === id) e.categoryId = other.id; });
+  }
+  DB.categories = DB.categories.filter(c => c.id !== id);
+  saveDB(); renderCategories(); toast('মুছে ফেলা হয়েছে');
+}
+
+/* ============================================================
+   REPORTS
+   ============================================================ */
+function populateYearSelectors() {
+  const now = new Date();
+  const ry = document.getElementById('reportYear');
+  if (!ry) return;
+  const years = new Set([now.getFullYear()]);
+  DB.payments.forEach(p => years.add(Number(p.year)));
+  DB.expenses.forEach(e => { if (e.date) years.add(Number(e.date.slice(0,4))); });
+  ry.innerHTML = [...years].sort((a,b)=>b-a).map(y => `<option value="${y}">${bengaliNum(y)}</option>`).join('');
+  renderReport();
+}
+
+function renderReports() { populateYearSelectors(); renderReport(); }
+
+function renderReport() {
+  const ry = document.getElementById('reportYear');
+  if (!ry) return;
+  const year = Number(ry.value);
+  const el = document.getElementById('reportContent');
+  let rows = '', totalIn = 0, totalOut = 0;
+  for (let mo = 0; mo < 12; mo++) {
+    const inAmt = DB.payments.filter(p => Number(p.year)===year && Number(p.month)===mo).reduce((s,p) => s + Number(p.amount||0), 0);
+    const outAmt = expenseForMonth(year, mo);
+    if (inAmt === 0 && outAmt === 0) continue;
+    totalIn += inAmt; totalOut += outAmt;
+    rows += `<div class="list-row"><div class="member-name">${MONTHS_BN[mo]} ${bengaliNum(year)}</div>
+      <div style="text-align:right;font-size:13px;"><span class="amount-pos">+${taka(inAmt)}</span> <span style="color:var(--text-muted);">/</span> <span class="amount-neg">-${taka(outAmt)}</span></div></div>`;
+  }
+  if (!rows) rows = '<div class="empty">এই বছরে লেনদেন নেই</div>';
+  el.innerHTML = rows + `
+    <div style="margin-top:12px;padding:14px;background:var(--bg);border-radius:12px;">
+      <div class="list-row" style="border:none;padding:6px 0;"><div class="member-name">মোট আদায়</div><span class="amount-pos">${taka(totalIn)}</span></div>
+      <div class="list-row" style="border:none;padding:6px 0;"><div class="member-name">মোট খরচ</div><span class="amount-neg">${taka(totalOut)}</span></div>
+      <div class="list-row" style="border-top:2px solid var(--border);border-bottom:none;padding:8px 0;"><div class="member-name" style="font-weight:800;">নিট</div><span style="font-weight:800;color:${totalIn-totalOut>=0?'var(--success)':'var(--danger)'}">${taka(totalIn-totalOut)}</span></div>
+    </div>`;
+}
+
+/* ============================================================
+   NOTICES
+   ============================================================ */
+function renderNotices() {
+  const listEl = document.getElementById('adminNoticesList');
+  if (!listEl) return;
+  const notices = [...DB.notices].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  listEl.innerHTML = notices.length === 0 ? '<div class="empty">নোটিশ নেই</div>'
+    : notices.map(n => `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:start;">
+          <div class="member-name">${esc(n.title)}</div>
+          <button class="btn btn-danger btn-sm" onclick="deleteNotice('${n.id}')">🗑️</button>
+        </div>
+        <div class="member-sub">${n.date||''}</div>
+        <div style="margin-top:6px;font-size:13px;">${esc(n.body)}</div>
+      </div>`).join('');
+}
+
+function addNotice() {
+  const title = document.getElementById('noticeTitle').value.trim();
+  const body = document.getElementById('noticeBody').value.trim();
+  if (!title || !body) return toast('শিরোনাম ও বিবরণ দিন', 'error');
+  DB.notices.push({ id: uid(), title, body, date: todayISO() });
+  saveDB();
+  document.getElementById('noticeTitle').value = '';
+  document.getElementById('noticeBody').value = '';
+  toast('প্রকাশ ✅');
+  renderNotices();
+}
+
+function deleteNotice(id) {
+  if (!confirm('মুছবেন?')) return;
+  DB.notices = DB.notices.filter(n => n.id !== id);
+  saveDB(); renderNotices(); toast('মুছে ফেলা হয়েছে');
+}
+
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+function renderSettings() {
+  document.getElementById('setSocietyName').value = DB.settings.societyName || '';
+  document.getElementById('setMonthlyFee').value = DB.settings.monthlyFee || 100;
+  document.getElementById('setEstDate').value = DB.settings.estDate || '';
+  updateGitHubStatus();
+  document.getElementById('systemInfo').innerHTML = `
+    <div class="list-row"><div class="member-name">সংস্করণ</div><span class="badge badge-admin">v4.0</span></div>
+    <div class="list-row"><div class="member-name">সদস্য</div><span>${bengaliNum(DB.members.length)}</span></div>
+    <div class="list-row"><div class="member-name">পেমেন্ট</div><span>${bengaliNum(DB.payments.length)}</span></div>
+    <div class="list-row"><div class="member-name">খরচ</div><span>${bengaliNum(DB.expenses.length)}</span></div>
+    <div class="list-row"><div class="member-name">খাত</div><span>${bengaliNum(DB.categories.length)}</span></div>
+    <div class="list-row"><div class="member-name">স্টোরেজ</div><span class="badge badge-paid">${github ? 'GitHub + Local' : 'Local'}</span></div>
+  `;
+}
+
+function saveSettings() {
+  DB.settings.societyName = document.getElementById('setSocietyName').value.trim() || 'গ্রামীণ সমিতি';
+  DB.settings.monthlyFee = Number(document.getElementById('setMonthlyFee').value) || 100;
+  DB.settings.estDate = document.getElementById('setEstDate').value;
+  saveDB(true);
+  document.getElementById('topRole').textContent = DB.settings.societyName + ' · অ্যাডমিন';
+  toast('সংরক্ষিত ✅');
+  renderStats();
+}
+
+function changePassword() {
+  const oldP = document.getElementById('oldPass').value;
+  const newP = document.getElementById('newPass').value;
+  const conP = document.getElementById('confirmPass').value;
+  if (oldP !== DB.settings.adminPass) return toast('পুরনো পাসওয়ার্ড ভুল!', 'error');
+  if (newP.length < 6) return toast('কমপক্ষে ৬ অক্ষর', 'error');
+  if (newP !== conP) return toast('পাসওয়ার্ড মিলছে না', 'error');
+  DB.settings.adminPass = newP;
+  saveDB(true);
+  document.getElementById('oldPass').value = '';
+  document.getElementById('newPass').value = '';
+  document.getElementById('confirmPass').value = '';
+  toast('পাসওয়ার্ড পরিবর্তন ✅');
+}
+
+/* ============================================================
+   DATA
+   ============================================================ */
+function exportData() {
+  const blob = new Blob([JSON.stringify(DB, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'somiti-backup-' + todayISO() + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('ডাউনলোড শুরু');
+}
+
+function importData(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.settings || !Array.isArray(data.members)) throw new Error('bad');
+      if (!confirm('বর্তমান ডেটা প্রতিস্থাপিত হবে। নিশ্চিত?')) return;
+      DB = migrateDB(data);
+      saveDB(true);
+      toast('ইমপোর্ট ✅');
+      renderAdmin();
+    } catch { toast('ভুল ফাইল', 'error'); }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+}
+
+function resetAll() {
+  if (!confirm('সব ডেটা মুছবেন?')) return;
+  if (!confirm('সত্যিই নিশ্চিত?')) return;
+  DB = defaultDB(); saveDB(true);
+  toast('রিসেট হয়েছে');
+  renderAdmin();
+}
+
+/* ============================================================
+   MEMBER PANEL
+   ============================================================ */
+const MEMBER_TAB_MAP = { mSummary:0, mProfile:1, mHistory:2, mFund:3, mNotices:4 };
+function memberTab(id, btn) {
+  document.querySelectorAll('.member-sec').forEach(s => s.style.display = 'none');
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'block';
+  document.querySelectorAll('#memberTabs .nav-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else {
+    const tabs = document.querySelectorAll('#memberTabs .nav-tab');
+    if (MEMBER_TAB_MAP[id] !== undefined) tabs[MEMBER_TAB_MAP[id]]?.classList.add('active');
+  }
+  updateBottomNavActive(id);
+  const renderers = {
+    mSummary: renderMySummary, mProfile: renderMyProfile,
+    mHistory: renderMyHistory, mFund: renderMyFund, mNotices: renderNotices
+  };
+  renderers[id]?.();
+}
+
+function renderMember() {
+  renderMemberProfileHeader();
+  renderMemberStats();
+  renderMySummary();
+  renderNotices();
+}
+
+function renderMemberProfileHeader() {
+  const m = DB.members.find(x => x.id === session.id);
+  if (!m) return;
+  const myTotal = DB.payments.filter(p => p.memberId === m.id).reduce((s,p)=>s+Number(p.amount||0),0);
+  document.getElementById('memberProfileHeader').innerHTML = `
+    <div class="profile-header">
+      <div class="profile-pic-wrap">
+        <div class="profile-pic">${m.photo ? `<img src="${m.photo}">` : esc(m.name.charAt(0))}</div>
+      </div>
+      <div class="profile-name">${esc(m.name)}</div>
+      <div class="profile-meta">
+        <div class="profile-meta-row">👨 ${esc(m.father||'—')}</div>
+        <div class="profile-meta-row">📱 ${esc(m.phone||'—')}</div>
+        ${m.address ? `<div class="profile-meta-row">📍 ${esc(m.address)}</div>` : ''}
+      </div>
+      <div class="profile-badge">💰 মোট জমা: ${taka(myTotal)}</div>
+    </div>`;
+}
+
+function renderMemberStats() {
+  const myPayments = DB.payments.filter(p => p.memberId === session.id);
+  const totalPaid = myPayments.reduce((s,p) => s + Number(p.amount||0), 0);
+  const now = new Date();
+  const thisMonthPaid = myPayments.some(p => Number(p.year)===now.getFullYear() && Number(p.month)===now.getMonth());
+  document.getElementById('memberStats').innerHTML = `
+    <div class="stat-card"><div class="icon">📅</div><div class="value">${bengaliNum(myPayments.length)}</div><div class="label">মাস জমা</div></div>
+    <div class="stat-card blue"><div class="icon">💰</div><div class="value">${taka(totalPaid)}</div><div class="label">মোট জমা</div></div>
+    <div class="stat-card ${thisMonthPaid?'accent':'dues'}"><div class="icon">${thisMonthPaid?'✅':'⏳'}</div><div class="value" style="font-size:14px;">${thisMonthPaid?'পরিশোধিত':'বকেয়া'}</div><div class="label">এ মাসে</div></div>
+    <div class="stat-card purple"><div class="icon">🏦</div><div class="value">${taka(currentBalance())}</div><div class="label">ফান্ড ব্যালেন্স</div></div>`;
+}
+
+function renderMySummary() {
+  renderMemberStats();
+  const myPayments = DB.payments.filter(p => p.memberId === session.id);
+  const paidSet = new Set(myPayments.map(p => p.year + '-' + p.month));
+  const now = new Date();
+  let chips = '';
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const y = d.getFullYear(), mo = d.getMonth();
+    const paid = paidSet.has(y + '-' + mo);
+    chips += `<div class="month-chip ${paid?'paid':'due'}">${MONTHS_SHORT[mo]}<span class="yr">${bengaliNum(y)}</span></div>`;
+  }
+  document.getElementById('myMonthChips').innerHTML = chips;
+
+  const recent = [...myPayments].sort((a,b) => (b.date||'').localeCompare(a.date||'')).slice(0,5);
+  document.getElementById('myRecentTx').innerHTML = recent.length === 0
+    ? '<div class="empty">লেনদেন নেই</div>'
+    : recent.map(p => `<div class="list-row"><div><div class="member-name">${MONTHS_BN[p.month]} ${bengaliNum(p.year)}</div><div class="member-sub">${p.date||''}</div></div><span class="amount-pos">+${taka(p.amount)}</span></div>`).join('');
+}
+
+function renderMyProfile() {
+  const m = DB.members.find(x => x.id === session.id);
+  if (!m) return;
+  document.getElementById('memName').value = m.name || '';
+  document.getElementById('memFather').value = m.father || '';
+  document.getElementById('memPhone').value = m.phone || '';
+  document.getElementById('memAddress').value = m.address || '';
+  window._memPhoto = m.photo || '';
+  document.getElementById('memPhotoPreview').innerHTML = m.photo ? `<img src="${m.photo}">` : '📷';
+}
+
+function previewMemPhoto(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  if (file.size > 2*1024*1024) return toast('ছবি 2MB এর কম', 'error');
+  const reader = new FileReader();
+  reader.onload = e => {
+    window._memPhoto = e.target.result;
+    document.getElementById('memPhotoPreview').innerHTML = `<img src="${e.target.result}">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveMyProfile() {
+  const m = DB.members.find(x => x.id === session.id);
+  if (!m) return;
+  const name = document.getElementById('memName').value.trim();
+  const phone = document.getElementById('memPhone').value.trim();
+  if (!name) return toast('নাম দিন', 'error');
+  if (!phone) return toast('মোবাইল দিন', 'error');
+  if (DB.members.some(x => x.id !== session.id && x.phone === phone)) return toast('নম্বরে সদস্য আছে', 'error');
+  m.name = name;
+  m.father = document.getElementById('memFather').value.trim();
+  m.phone = phone;
+  m.address = document.getElementById('memAddress').value.trim();
+  if (window._memPhoto !== undefined) m.photo = window._memPhoto;
+  saveDB();
+  toast('সংরক্ষিত ✅');
+  renderMemberProfileHeader();
+  renderMemberStats();
+  const av = document.getElementById('topAvatar');
+  if (m.photo) av.innerHTML = `<img src="${m.photo}">`;
+  else av.textContent = m.name.charAt(0);
+  document.getElementById('topName').textContent = m.name;
+}
+
+function renderMyHistory() {
+  const myPayments = [...DB.payments.filter(p => p.memberId === session.id)]
+    .sort((a,b) => (b.year*12+b.month) - (a.year*12+a.month));
+  const el = document.getElementById('myPaymentHistory');
+  if (myPayments.length === 0) { el.innerHTML = '<div class="empty"><span class="emoji">📅</span>পেমেন্ট নেই</div>'; return; }
+  let total = 0;
+  const rows = myPayments.map(p => {
+    total += Number(p.amount||0);
+    return `<div class="list-row"><div><div class="member-name">${MONTHS_BN[p.month]} ${bengaliNum(p.year)}</div><div class="member-sub">${p.date||''}</div></div><span class="amount-pos">+${taka(p.amount)}</span></div>`;
+  }).join('');
+  el.innerHTML = rows + `<div style="margin-top:12px;padding:12px;background:var(--bg);border-radius:12px;">
+    <div class="list-row" style="border:none;"><div class="member-name" style="font-weight:800;">মোট</div><span class="amount-pos">${taka(total)}</span></div></div>`;
+}
+
+function renderMyFund() {
+  const totalIn = totalCollected();
+  const totalOut = totalExpense();
+  const balance = totalIn - totalOut;
+  document.getElementById('fundStatus').innerHTML = `
+    <div class="list-row"><div class="member-name">💰 মোট আদায়</div><span class="amount-pos">${taka(totalIn)}</span></div>
+    <div class="list-row"><div class="member-name">📤 মোট খরচ</div><span class="amount-neg">${taka(totalOut)}</span></div>
+    <div class="list-row"><div class="member-name">👥 সদস্য</div><span>${bengaliNum(activeMembers().length)}</span></div>
+    <div class="list-row"><div class="member-name">📊 মাসিক চাঁদা</div><span>${taka(DB.settings.monthlyFee)}</span></div>
+    <div class="list-row" style="border-top:2px solid var(--border);padding-top:12px;">
+      <div class="member-name" style="font-weight:800;">🏦 ব্যালেন্স</div>
+      <span style="font-weight:800;font-size:16px;color:${balance>=0?'var(--success)':'var(--danger)'}">${taka(balance)}</span>
+    </div>`;
+  const totals = {};
+  DB.expenses.forEach(e => { const id = e.categoryId || 'cat_other'; totals[id] = (totals[id] || 0) + Number(e.amount||0); });
+  const grand = Object.values(totals).reduce((s,v) => s+v, 0);
+  document.getElementById('fundCategories').innerHTML = grand === 0
+    ? '<div class="empty">খরচ নেই</div>'
+    : DB.categories.map(c => {
+        const amt = totals[c.id] || 0;
+        if (amt === 0) return '';
+        const pct = (amt/grand*100).toFixed(1);
+        return `<div class="cat-bar"><div class="cat-bar-top"><span>${c.icon} ${esc(c.name)}</span><span>${taka(amt)}</span></div>
+          <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%"></div></div></div>`;
+      }).join('') || '<div class="empty">খরচ নেই</div>';
+}
+
+function renderNotices() {
+  const el = document.getElementById('noticesList');
+  if (!el) return;
+  const notices = [...DB.notices].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  el.innerHTML = notices.length === 0 ? '<div class="empty">নোটিশ নেই</div>'
+    : notices.map(n => `<div style="padding:12px 0;border-bottom:1px solid var(--border);">
+        <div class="member-name">📢 ${esc(n.title)}</div>
+        <div class="member-sub">${n.date||''}</div>
+        <div style="margin-top:6px;font-size:13px;">${esc(n.body)}</div>
+      </div>`).join('');
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+function showModal(html) {
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+async function boot() {
+  const cfg = loadGitHubConfig();
+  github = cfg;
+  // Load local first (instant)
+  DB = loadLocalBackup();
+  if (!DB) {
+    DB = defaultDB();
+    seedDemo(DB);
+    saveLocalBackup();
+  }
+  updateSyncDot();
+  showMainLogin();
+
+  if (cfg) {
+    githubOnline = false;
+    updateSyncDot();
+    try {
+      await syncFromGitHub(true);
+      githubOnline = true;
+      scheduleAutoSync();
+      updateSyncDot();
+    } catch (e) {
+      githubOnline = false;
+      updateSyncDot();
+    }
+  }
+}
+
+function showMainLogin() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  populateMemberSelect();
+  updateSyncDot();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  boot();
+  const ed = document.getElementById('expDate');
+  if (ed) ed.value = todayISO();
+});
+
+window.addEventListener('beforeunload', () => { saveLocalBackup(); });
+</script>
+</body>
+</html>
