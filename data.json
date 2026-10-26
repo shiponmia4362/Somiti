@@ -4,103 +4,21 @@
     "monthlyFee": 100,
     "adminPass": "admin123",
     "estDate": "",
-    "createdAt": "2026-10-26T00:23:27.016Z",
-    "updatedAt": "2026-10-26T00:26:11.570Z",
-    "version": 7,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T00:00:00.000Z",
+    "version": 10,
     "distributionMode": "equal"
   },
-  "members": [
-    {
-      "id": "mvoijsbtbpicbt",
-      "name": "রহিম উদ্দিন",
-      "father": "আব্দুল করিম",
-      "phone": "01711000001",
-      "address": "গ্রাম: রামপুর",
-      "joined": "2026-10-26",
-      "active": true,
-      "photo": ""
-    },
-    {
-      "id": "mvoijsbtrsep43",
-      "name": "করিম মিয়া",
-      "father": "মফিজ মিয়া",
-      "phone": "01711000002",
-      "address": "গ্রাম: রামপুর",
-      "joined": "2026-10-26",
-      "active": true,
-      "photo": ""
-    },
-    {
-      "id": "mvoijsbtjpccfu",
-      "name": "জামাল হোসেন",
-      "father": "সিরাজ হোসেন",
-      "phone": "01711000003",
-      "address": "গ্রাম: সোনাপুর",
-      "joined": "2026-10-26",
-      "active": true,
-      "photo": ""
-    },
-    {
-      "id": "mvoijsbttxpjs4",
-      "name": "সেলিম রহমান",
-      "father": "আব্দুর রহমান",
-      "phone": "01711000004",
-      "address": "গ্রাম: সোনাপুর",
-      "joined": "2026-10-26",
-      "active": true,
-      "photo": ""
-    },
-    {
-      "id": "mvoijsbt5gmip3",
-      "name": "আবুল কাশেম",
-      "father": "রহিম উদ্দিন",
-      "phone": "01711000005",
-      "address": "গ্রাম: রামপুর",
-      "joined": "2026-10-26",
-      "active": true,
-      "photo": ""
-    }
-  ],
+  "members": [],
   "payments": [],
   "expenses": [],
   "categories": [
-    {
-      "id": "cat_office",
-      "name": "অফিস খরচ",
-      "icon": "🏢"
-    },
-    {
-      "id": "cat_meeting",
-      "name": "সভা খরচ",
-      "icon": "🤝"
-    },
-    {
-      "id": "cat_medical",
-      "name": "চিকিৎসা সহায়তা",
-      "icon": "🏥"
-    },
-    {
-      "id": "cat_edu",
-      "name": "শিক্ষা সহায়তা",
-      "icon": "📚"
-    },
-    {
-      "id": "cat_relief",
-      "name": "ত্রাণ সহায়তা",
-      "icon": "🎁"
-    },
-    {
-      "id": "cat_other",
-      "name": "অন্যান্য",
-      "icon": "📌"
-    }
+    { "id": "cat_office", "name": "অফিস খরচ", "icon": "🏢" },
+    { "id": "cat_meeting", "name": "সভা খরচ", "icon": "🤝" },
+    { "id": "cat_medical", "name": "চিকিৎসা সহায়তা", "icon": "🏥" },
+    { "id": "cat_edu", "name": "শিক্ষা সহায়তা", "icon": "📚" },
+    { "id": "cat_relief", "name": "ত্রাণ সহায়তা", "icon": "🎁" },
+    { "id": "cat_other", "name": "অন্যান্য", "icon": "📌" }
   ],
-  "notices": [
-    {
-      "id": "mvoijsbtvqvy64",
-      "title": "স্বাগতম!",
-      "body": "গ্রামীণ সমিতির ডিজিটাল ফান্ড ম্যানেজমেন্ট সিস্টেমে স্বাগতম।",
-      "date": "2026-10-26"
-    }
-  ]
+  "notices": []
 }
